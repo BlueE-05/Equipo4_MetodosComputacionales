@@ -15,3 +15,15 @@
 (define rg_exp #rx"^exp")
 (define rg_sqr #rx"^sqr")
 
+
+(define automaton_state #rx"^q[0-9]+")
+(define automaton_transitions #rx"^#px"\\( automaton_state \\, exprReg \\, automaton_state \\)") ; to be defined
+
+  
+(define start_automaton_definition #rx"^{")
+(define end_automaton_definition #rx"^}")
+(define automaton_name_definition #rx"^automaton\\:\\:")
+(define automaton_alphabet_definition #rx"^alphabet\\:\\:")
+(define automaton_states_definition #rx"^states\\:\\:")
+(define automaton_accept_definition #rx"^accept\\:\\:")
+(define automaton_transition_definition #rx"^transitions\\:\\:")
