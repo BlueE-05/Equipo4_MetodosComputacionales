@@ -3,11 +3,15 @@
 
 (define rg_int #rx"^[0-9]+")
 (define rg_float #rx"^[0-9]+\\.[0-9]+")
-(define rg_identifiers)
-()
-()
-()
+(define rg_identifiers #rx"^[a-zA-Z_]\\w*\\b")
+(define rg_string #rx"^\\"".*?")
+(define rg_numReal #rx"^-?\\d*\\.\\d+(?:[eE][-+]?\\d+)?\\b")
 
-(define automaton_state #rx"^q[0-9]+")
-(define start_automaton_definition #rx"^{")
-(define automaton_name )
+(define rg_addition #rx"^\\+")
+(define rg_subtraction #rx"^-")
+(define rg_multiplication #rx"^\\*")
+(define rg_division #rx"^/")
+
+(define rg_exp #rx"^exp")
+(define rg_sqr #rx"^sqr")
+
