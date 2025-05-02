@@ -15,9 +15,19 @@
 (define rg_exp #rx"^exp")
 (define rg_sqr #rx"^sqr")
 
+(define rg_assign #rx"^->")
+(define rg_compare #rx"^is")
+(define rg_lessthan #rx"^<")
+(define rg_grthan #rx"^>")
+(define rg_lessequal_than #rx"^<=")
+(define rg_grtequal_than #rx"^>=")
+(define rg_different #rx"^(isNot|isnot)")
+(define rg_and #rx"^and")
+(define rg_or #rx"^or")
+(define rg_not #rx"^not")
 
 (define automaton_state #rx"^q[0-9]+")
-(define automaton_transitions #rx"^#px"\\( automaton_state \\, exprReg \\, automaton_state \\)") ; to be defined
+;(define automaton_transitions #rx"^#px"\\( automaton_state \\, exprReg \\, automaton_state \\)") ; to be defined
 
   
 (define start_automaton_definition #rx"^{")
@@ -27,14 +37,3 @@
 (define automaton_states_definition #rx"^states\\:\\:")
 (define automaton_accept_definition #rx"^accept\\:\\:")
 (define automaton_transition_definition #rx"^transitions\\:\\:")
-
-(define rg_assign #rx"^->")
-(define rg_compare #rx"^is")
-(define rg_lessthan #rx"^<")
-(define rg_grthan #rx"^>")
-(define rg_lessequal_than #rx"^<=")
-(define rg_grtequal_than #rx"^>=")
-(define rg_different #rx"^isNot")
-(define rg_and #rx"^and")
-(define rg_or #rx"^or")
-(define rg_not #rx"^not")
