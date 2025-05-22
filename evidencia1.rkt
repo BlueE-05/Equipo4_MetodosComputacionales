@@ -1,20 +1,33 @@
 #lang racket
-;; Leer un archivo de texto (.txt) que contiene un automata en el lenguaje que diseñaste
-(define archivo "automatas DFA.txt") ; archivo de entrada
+;; 1. Leer un archivo de texto que contiene un autómata DFA
+(define archivo "automata DFA.txt")
 
-(define in (open-input-file archivo) ) ; abrir el archivo
-(define lineas (sequence->list (in-lines in)  )) ; leer las líneas del archivo como una sequence que convertimos en lista con sequence->list
-(close-input-port in) ; cerrar el archivo
+; Abrir y leer el archivo línea por línea
+(define in (open-input-file archivo))
+(define lineas (sequence->list (in-lines in))) ; se guarda una lista donde cada posicion es una línea
+(close-input-port in)
 
-; Funcion que recorre e imprime la lista
-;         con print, que permite ver el string con todo y comillas
-(define (print-lines lista)
-   (cond
-     [(empty? (cdr lista) ) (print (car lista)) ]
-     [else (print (car lista)) (newline)  (print-lines (cdr lista) ) ]
-   )
-)
-(print-lines lineas)
+;; 2. Tokenizar línea por línea y guardar nueva lista con las posiciones y tipo
+(require "lexico.rkt")
 
-;; Verificar el contenido del archivo acuerdo al léxico y sintaxis de tu lenguaje, utilizando expresiones regulares, tokenizacion y funciones
-(define match-pos regexp-match-positions) ; acortar el nombre de la función regexp-match-positions
+; Función recursiva que tokeniza todas las líneas y concatena los resultados
+(define (tokenize_all lineas)
+  (cond
+    [(null? lineas) '()] ; caso base: si ya no hay líneas, devuelve los tokens acumulados
+    [else
+     (append (tokenize (car lineas)) ; tokeniza linea actual y append
+             (list '("\n" "\n")) ; formateo del html
+             (tokenize_all (cdr lineas)))])) ; regresa el resto de la lista
+
+(define tokens (tokenize_all lineas))
+
+
+;; 3. Verificar sintaxis y encontrar errores
+(require "sintaxis.rkt")
+(verify-sintaxis tokens)
+
+;; 4. Crear html
+(require "css.rkt")
+(create-css)
+(create-html "automataDFA.html" tokens)
+;; 5. Ejecutar automata (si se encuentra la instruccion en el txt)
