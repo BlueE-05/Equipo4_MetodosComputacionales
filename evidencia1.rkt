@@ -1,6 +1,6 @@
 #lang racket
 ;; 1. Leer un archivo de texto que contiene un autómata DFA
-(define archivo "automata DFA.txt")
+(define archivo "automatas DFA.txt")
 
 ; Abrir y leer el archivo línea por línea
 (define in (open-input-file archivo))
@@ -23,11 +23,20 @@
 
 
 ;; 3. Verificar sintaxis y encontrar errores
-(require "sintaxis.rkt")
-(verify-sintaxis tokens)
+;(require "sintaxis.rkt")
+;(verify-sintaxis tokens)
 
 ;; 4. Crear html
 (require "css.rkt")
 (create-css)
 (create-html "automataDFA.html" tokens)
+
 ;; 5. Ejecutar automata (si se encuentra la instruccion en el txt)
+(require "automaton.rkt")
+
+; Función que verifica si la función de ejecutar esta presente en el archivo, de ser así lo intenta ejecutar
+;(define run-if-automaton
+;  (define automaton_name)
+;  (list input)
+;  (run-automata 'automaton_name input)
+;)
