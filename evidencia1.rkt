@@ -23,8 +23,8 @@
 
 
 ;; 3. Verificar sintaxis y encontrar errores
-;(require "sintaxis.rkt")
-;(verify-sintaxis tokens)
+(require "sintaxis.rkt")
+(verify-sintaxis tokens)
 
 ;; 4. Crear html
 (require "css.rkt")
