@@ -23,7 +23,7 @@
 
 
 ;; 3. Verificar sintaxis y encontrar errores
-(require "sintaxis.rkt")
+(require "sintaxis2.rkt")
 (verify-sintaxis tokens)
 
 ;; 4. Crear html

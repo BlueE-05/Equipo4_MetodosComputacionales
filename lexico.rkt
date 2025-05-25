@@ -10,7 +10,8 @@
    (list 'rg_comment          #rx"^//[ ]*.*")
    (list 'rg_char             #rx"^\"(.)\"")
    (list 'rg_state            #rx"^q[0-9]+")
-   (list 'rg_name             #rx"^automaton")
+   (list 'rg_DFAname          #rx"DFA|dfa")
+   (list 'rg_PDAname          #rx"PDA|pda")   
    (list 'rg_alphabet         #rx"^alphabet")
    (list 'rg_statesDef        #rx"^states")
    (list 'rg_accept           #rx"^accept")
@@ -25,7 +26,7 @@
    (list 'rg_comma            #rx"^,")
    (list 'rg_listStart        #rx"^\\[")
    (list 'rg_listEnd          #rx"^\\]")
-   (list 'rg_action          #rx"^->")
+   (list 'rg_action           #rx"^->")
   )
 )
 

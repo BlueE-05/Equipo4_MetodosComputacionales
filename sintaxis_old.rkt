@@ -6,19 +6,27 @@
 
 ;; Función principal: inicia el proceso sintáctico del archivo tokenizado.
 ;; Recorre todos los tokens y decide qué función de parsing llamar según el contexto.
+(define (filter-tokens lst)
+  (filter
+   (lambda (pair)
+     (let ([label (car pair)])
+       (and (not (equal? label "\n"))
+            (not (equal? label "rg_comment")))))
+   lst))
+
+;; Función principal: filtra y llama al parser real
 (define (verify-sintaxis tokens)
+  (let ([tokens (filter-tokens tokens)])
+    (verify-sintaxis-core tokens)))
+
+;; El resto de tu parser va en verify-sintaxis-core y ya no necesita saltar "\n" ni comentarios
+(define (verify-sintaxis-core tokens)
   (cond
     [(null? tokens) (printf "Verificación terminada.\n")] ; Caso base: fin de archivo
     ;; Si inicia un autómata, procesa el bloque de autómata
     [(equal? (first (first tokens)) "rg_automatonStart")
      (define rest (parse-one-automaton tokens))
      (verify-sintaxis rest)]
-    ;; Salta saltos de línea
-    [(string=? (first (first tokens)) "\n")
-     (verify-sintaxis (cdr tokens))]
-    ;; Salta comentarios
-    [(equal? (first (first tokens)) "rg_comment")
-     (verify-sintaxis (cdr tokens))]
     ;; Si detecta una instrucción de ejecución (ej: automata2 -> [...])
     [(and (equal? (first (first tokens)) "rg_identifier")
           (>= (length tokens) 2)
@@ -200,5 +208,4 @@
     (match tokens
       [(list `("rg_automatonStart" ,_) rest ...)
        (parse-name-def rest)]
-      [else (error "Error: se esperaba '{' al inicio del autómata.")])) 
-)
+      [else (error "Error: se esperaba '{' al inicio del autómata.")])))
