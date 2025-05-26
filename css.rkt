@@ -25,8 +25,6 @@
       (display css-output out))
     #:exists 'replace))
 
-; (create-css)
-
 ; Función para convertir label a clase HTML
 (define (token->class label) ; diccionario / funcion auxiliar
   (cond
@@ -156,32 +154,3 @@
     (lambda (out)
       (display (html-output path tokens resultTokens) out))
     #:exists 'replace))
-
-(define test_lst '( ("rg_automatonStart" "{")
-                    ("\n" "\n")
-                    ("rg_name" "automaton")
-                    ("rg_colon" "::")
-                    ("rg_identifier" "automata1")
-                    ("\n" "\n")
-                    ("rg_state" "states")
-                    ("rg_colon" "::")
-                    ("rg_int" "4")
-                    ("\n" "\n")
-                    ("rg_error" "acc")
-                    ("\n" "\n")
-
-                    ("smth" "prueba\t  \n")
-                    ("\n" "\n")
-                    ("rg_automatonEnd" "}")
-                    ("\n" "\n")
-                    ("rg_identifier" "pruebas de identacion")
-                  )
-)
-
-(define test_res '( ("rg_resultsError" "Error: se esperaba el inicio de un autómata '{' o una instrucción de ejecución.")
-                    ("\n" "\n")
-                    ("rg_results" "Error: se esperaba el inicio de un autómata '{' o una instrucción de ejecución." )
-                  )
-)
-
-; (create-html "testLST.html" test_lst test_res)
