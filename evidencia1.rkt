@@ -23,19 +23,13 @@
 
 
 ;; 3. Verificar sintaxis y encontrar errores
-(require "sintaxis3.rkt")
+(require "sintaxis.rkt")
 (define-values (instrucciones resultados) (verify-sintaxis tokens))
 
-;; 5. Ejecutar automata (si se encuentra la instruccion en el txt)
+;; 4. Ejecutar automata (si se encuentra la instruccion en el txt)
 (define resultados-final (if (null? instrucciones) resultados (procesar-instrucciones instrucciones)))
 
-;; 4. Crear html
+;; 5. Crear html
 (require "css.rkt")
 (create-css)
 (create-html "automataDFA.html" tokens resultados-final)
-; Función que verifica si la función de ejecutar esta presente en el archivo, de ser así lo intenta ejecutar
-;(define run-if-automaton
-;  (define automaton_name)
-;  (list input)
-;  (run-automata 'automaton_name input)
-;)
