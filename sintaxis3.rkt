@@ -1,6 +1,5 @@
 #lang racket
 
-(require racket/match)
 (require "automaton.rkt")
 (provide verify-sintaxis procesar-instrucciones)
 
@@ -52,178 +51,184 @@
 ;; === Parsers ===
 
 (define (parse-one-automaton tokens)
-  (match tokens
-    [(list `("rg_automatonStart" ,_) rest ...)
-     (parse-name-def rest)]
-    [else (error "se esperaba '{' al inicio del autómata.")]))
+  (if (and (pair? tokens)
+           (pair? (car tokens))
+           (equal? (caar tokens) "rg_automatonStart"))
+      (parse-name-def (cdr tokens))
+      (error "se esperaba '{' al inicio del autómata.")))
 
 (define (parse-name-def tokens)
-  (match tokens
-    [(list `("rg_DFAname" ,_)
-           `("rg_colon" ,_)
-           `("rg_identifier" ,id)
-           rest ...)
-     (printf "\nNombre del autómata: ~a\n" id)
-     (define name (string->symbol id))
-     (define-values (alfabeto states accept transiciones resto)
-       (parse-alphabet-or-states rest))
-     (values
-      `(create-automata ',name 'DFA ,states ',accept ',transiciones ,''())
-      resto)]
-    [else (error "en la definición de nombre del autómata")]))
+  (if (and (>= (length tokens) 3)
+           (equal? (caar tokens) "rg_DFAname")
+           (equal? (caar (cdr tokens)) "rg_colon")
+           (equal? (caar (cddr tokens)) "rg_identifier"))
+      (let* ([id (cadar (cddr tokens))]
+             [rest (cdddr tokens)])
+        (printf "\nNombre del autómata: ~a\n" id)
+        (define name (string->symbol id))
+        (define-values (alfabeto states accept transiciones resto)
+          (parse-alphabet-or-states rest))
+        (values
+         `(create-automata ',name 'DFA ,states ',accept ',transiciones ,''())
+         resto))
+      (error "en la definición de nombre del autómata")))
 
 (define (parse-alphabet-or-states tokens)
-  (match tokens
-    [(list `("rg_alphabet" ,_)
-           `("rg_colon" ,_)
-           `("rg_listStart" ,_)
-           rest ...)
-     (define-values (ok? alfabeto remaining) (parse-char-list rest))
+  (cond
+    [(and (>= (length tokens) 3)
+          (equal? (caar tokens) "rg_alphabet")
+          (equal? (caar (cdr tokens)) "rg_colon")
+          (equal? (caar (cddr tokens)) "rg_listStart"))
+     (define-values (ok? alfabeto remaining) (parse-char-list (cdddr tokens)))
      (if ok?
          (parse-states-def remaining alfabeto)
          (error "en la lista de símbolos del alfabeto"))]
-
-    [(list `("rg_statesDef" ,_) rest ...)
+    [(and (pair? tokens)
+          (equal? (caar tokens) "rg_statesDef"))
      (parse-states-def tokens '())] ; sin alfabeto explícito
-
     [else (error "se esperaba 'alphabet' o 'states' después del nombre del autómata")]))
 
 (define (parse-states-def tokens alfabeto)
-  (match tokens
-    [(list `("rg_statesDef" ,_)
-           `("rg_colon" ,_)
-           `("rg_int" ,numero)
-           rest ...)
-     (let ([numero (string->number numero)])
-       (printf "Cantidad de estados: ~a\n" numero)
-       (parse-alphabet-or-accept rest alfabeto numero))]
-    [else (error "en la definición de estados")]))
+  (if (and (>= (length tokens) 3)
+           (equal? (caar tokens) "rg_statesDef")
+           (equal? (caar (cdr tokens)) "rg_colon")
+           (equal? (caar (cddr tokens)) "rg_int"))
+      (let* ([numero (string->number (cadar (cddr tokens)))]
+             [rest (cdddr tokens)])
+        (printf "Cantidad de estados: ~a\n" numero)
+        (parse-alphabet-or-accept rest alfabeto numero))
+      (error "en la definición de estados")))
 
 (define (parse-alphabet-or-accept tokens alfabeto estados)
   (cond
     [(and (pair? tokens)
-          (equal? (car (first tokens)) "rg_alphabet"))
-     (match tokens
-       [(list `("rg_alphabet" ,_)
-              `("rg_colon" ,_)
-              `("rg_listStart" ,_)
-              rest ...)
-        (define-values (ok? new-alfabeto remaining) (parse-char-list rest))
-        (if ok?
-            (parse-accept-def remaining new-alfabeto estados)
-            (error "en la lista de símbolos del alfabeto"))]
-       [else (error "en definición de alfabeto")])]
-
+          (equal? (caar tokens) "rg_alphabet"))
+     (if (and (>= (length tokens) 3)
+              (equal? (caar tokens) "rg_alphabet")
+              (equal? (caar (cdr tokens)) "rg_colon")
+              (equal? (caar (cddr tokens)) "rg_listStart"))
+         (let* ([rest (cdddr tokens)])
+           (define-values (ok? new-alfabeto remaining)
+             (parse-char-list rest))
+           (if ok?
+               (parse-accept-def remaining new-alfabeto estados)
+               (error "en la lista de símbolos del alfabeto")))
+         (error "en definición de alfabeto"))]
     [(and (pair? tokens)
-          (equal? (car (first tokens)) "rg_accept"))
+          (equal? (caar tokens) "rg_accept"))
      (parse-accept-def tokens alfabeto estados)]
-
     [else (error "se esperaba 'accept' o 'alphabet' después de la definición de estados")]))
 
 (define (parse-accept-def tokens alfabeto estados)
-  (match tokens
-    [(list `("rg_accept" ,_)
-           `("rg_colon" ,_)
-           rest ...)
-     (define-values (ok? accept remaining) (parse-state-list rest))
-     (if ok?
-         (begin
-           (printf "Estados de aceptación: ~a\n" accept)
-           (parse-transitions-def remaining alfabeto estados accept))
-         (error "en la lista de estados de aceptación"))]
-    [else (error "en la definición del estado de aceptación")]))
+  (if (and (>= (length tokens) 3)
+           (equal? (caar tokens) "rg_accept")
+           (equal? (caar (cdr tokens)) "rg_colon"))
+      (let* ([rest (cddr tokens)])
+        (define-values (ok? accept remaining)
+          (parse-state-list rest))
+        (if ok?
+            (begin
+              (printf "Estados de aceptación: ~a\n" accept)
+              (parse-transitions-def remaining alfabeto estados accept))
+            (error "en la lista de estados de aceptación")))
+      (error "en la definición del estado de aceptación")))
 
 (define (parse-state-list tokens)
   (define (loop tokens acc)
     (cond
       [(null? tokens)
        (values #t (reverse acc) '())]
-
       [(equal? (car (car tokens)) "rg_state")
        (define estado (cadr (car tokens)))
        (define rest (cdr tokens))
        (if (and (pair? rest) (equal? (car (car rest)) "rg_comma"))
-           (loop (cdr rest) (cons estado acc)) ; continúa
-           (values #t (reverse (cons estado acc)) rest))] ; fin si no hay coma
-
-      [else (values #t (reverse acc) tokens)])) ; terminó la lista
+           (loop (cdr rest) (cons estado acc))
+           (values #t (reverse (cons estado acc)) rest))]
+      [else (values #t (reverse acc) tokens)]))
   (loop tokens '()))
 
 (define (parse-transitions-def tokens alfabeto estados accept)
-  (match tokens
-    [(list `("rg_transitions" ,_)
-           `("rg_colon" ,_)
-           rest ...)
-     (define-values (ok? transiciones remaining) (parse-transitions-list rest '()))
-     (if ok?
-         (values alfabeto estados accept transiciones remaining)
-         (error "en la definición de 'transitions'"))]
-    [else (error "en la definición de 'transitions'")]))
+  (if (and (>= (length tokens) 3)
+           (equal? (caar tokens) "rg_transitions")
+           (equal? (caar (cdr tokens)) "rg_colon"))
+      (let* ([rest (cddr tokens)])
+        (define-values (ok? transiciones remaining)
+          (parse-transitions-list rest '()))
+        (if ok?
+            (values alfabeto estados accept transiciones remaining)
+            (error "en la definición de 'transitions'")))
+      (error "en la definición de 'transitions'")))
 
 (define (parse-transitions-list tokens acc)
   (let* ([tokens (skip-commas tokens)])
-    (match tokens
-      [(list `("rg_automatonEnd" ,_) rest ...)
+    (cond
+      [(and (pair? tokens)
+            (equal? (caar tokens) "rg_automatonEnd"))
        (printf "Bloque de transiciones terminado correctamente.\n")
-       (values #t (reverse acc) rest)]
-
-      [_
+       (values #t (reverse acc) (cdr tokens))]
+      [else
        (define-values (ok? transicion rest) (parse-one-transition tokens))
        (if ok?
            (parse-transitions-list rest (cons transicion acc))
            (values #f '() '()))])))
 
 (define (parse-one-transition tokens)
-  (match tokens
-    [(list `("rg_parentesisStart" ,_)
-           `("rg_state" ,estado1)
-           `("rg_comma" ,_)
-           `("rg_listStart" ,_)
-           rest ...)
-     (define-values (ok? chars rest1) (parse-char-list rest))
-     (if (not ok?) (values #f '() '())
-         (match rest1
-           [(list `("rg_comma" ,_)
-                  `("rg_state" ,estado2)
-                  `("rg_parentesisEnd" ,_)
-                  rest2 ...)
-            (values #t `(,estado1 ,chars ,estado2) rest2)]
-           [else (values #f '() '())]))]
-    [else (values #f '() '())]))
+  (if (and (>= (length tokens) 5)
+           (equal? (caar tokens) "rg_parentesisStart")
+           (equal? (caar (cdr tokens)) "rg_state")
+           (equal? (caar (cddr tokens)) "rg_comma")
+           (equal? (caar (cdddr tokens)) "rg_listStart"))
+      (let* ([estado1 (cadar (cdr tokens))]
+             [rest (cddddr tokens)])
+        (define-values (ok? chars rest1)
+          (parse-char-list rest))
+        (if (not ok?) (values #f '() '())
+            (if (and (>= (length rest1) 3)
+                     (equal? (caar rest1) "rg_comma")
+                     (equal? (caar (cdr rest1)) "rg_state")
+                     (equal? (caar (cddr rest1)) "rg_parentesisEnd"))
+                (let* ([estado2 (cadar (cdr rest1))]
+                       [rest2 (cdddr rest1)])
+                  (values #t `(,estado1 ,chars ,estado2) rest2))
+                (values #f '() '()))))
+      (values #f '() '())))
 
 (define (parse-char-list tokens)
   (define (loop tokens acc)
-    (match tokens
-      ;; Fin de lista
-      [(list `("rg_listEnd" ,_) rest ...)
-       (values #t (reverse acc) rest)]
-
-      ;; Caracter seguido de coma
-      [(list `("rg_char" ,c) `("rg_comma" ,_) rest ...)
-       (loop rest (cons c acc))]
-
-      ;; Último carácter antes de cerrar lista
-      [(list `("rg_char" ,c) `("rg_listEnd" ,_) rest ...)
-       (values #t (reverse (cons c acc)) rest)]
-
+    (cond
+      [(null? tokens)
+       (values #f '() '())]
+      [(and (equal? (car (car tokens)) "rg_listEnd"))
+       (values #t (reverse acc) (cdr tokens))]
+      [(and (>= (length tokens) 2)
+            (equal? (car (car tokens)) "rg_char")
+            (equal? (car (car (cdr tokens))) "rg_comma"))
+       (loop (cddr tokens) (cons (cadr (car tokens)) acc))]
+      [(and (>= (length tokens) 2)
+            (equal? (car (car tokens)) "rg_char")
+            (equal? (car (car (cdr tokens))) "rg_listEnd"))
+       (values #t (reverse (cons (cadr (car tokens)) acc)) (cdr (cdr tokens)))]
       [else (values #f '() '())]))
   (loop tokens '()))
 
 (define (parse-exec-instruction tokens)
-  (match tokens
-    [(list `("rg_identifier" ,id)
-           `("rg_action" ,action)
-           `("rg_listStart" ,_)
-           rest ...)
-     (define-values (ok? chars remaining) (parse-char-list rest))
-     (if ok?
-         (begin
-           (printf "\nIdentificador: ~a\n" id)
-           (printf "Acción detectada: ~a\n" action)
-           (printf "Lista de caracteres: '~a\n" chars)
-           (values `(run-automata ',(string->symbol id) ', chars) remaining))
-         (error "en instrucción de ejecución"))]
-    [else (error "en la instrucción de ejecución")]))
+  (if (and (>= (length tokens) 3)
+           (equal? (caar tokens) "rg_identifier")
+           (equal? (caar (cdr tokens)) "rg_action")
+           (equal? (caar (cddr tokens)) "rg_listStart"))
+      (let* ([id (cadar tokens)]
+             [action (cadar (cdr tokens))]
+             [rest (cdddr tokens)])
+        (define-values (ok? chars remaining)
+          (parse-char-list rest))
+        (if ok?
+            (begin
+              (printf "\nIdentificador: ~a\n" id)
+              (printf "Acción detectada: ~a\n" action)
+              (printf "Lista de caracteres: '~a\n" chars)
+              (values `(run-automata ',(string->symbol id) ', chars) remaining))
+            (error "en instrucción de ejecución")))
+      (error "en la instrucción de ejecución")))
 
 ;; === Utilidades ===
 
