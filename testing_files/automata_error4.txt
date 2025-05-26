@@ -1,0 +1,8 @@
+{
+    DFA :: automata_error4
+    states :: 3
+    accept :: q#
+    transitions ::
+        (q0, ["a"], q1),
+        (q1, ["b"], q#)
+}

@@ -1,0 +1,8 @@
+{
+    DFA :: automata_error2
+    states :: 3
+    accept :: q2
+    transitions ::
+        q0, ["a"], q1   ; <- Falta paréntesis en la transición
+        (q1, ["b"], q2)
+}

@@ -1,0 +1,14 @@
+{
+    dfa :: una_b_enmedio
+    states :: 4
+    accept :: q3
+    transitions :: 
+        (q0, ["a"], q0),
+        (q0, ["b"], q1),
+        (q1, ["c"], q2),
+        (q2, ["c"], q2),
+        (q2, [], q3),
+}
+
+// Explicación:
+// Este autómata acepta cadenas que contienen una 'b' en medio, rodeada por 'a's antes y 'c's después. Por ejemplo: 'aaabcc'.

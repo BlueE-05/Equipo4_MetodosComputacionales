@@ -1,0 +1,7 @@
+{
+    dfa :: automata_error5
+    states :: 2,
+    accept :: q1,
+    transitions ::
+        (q0, ["a"], q1)
+}

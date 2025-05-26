@@ -1,0 +1,6 @@
+{
+    DFA :: automata_error3
+    states :: 2
+    accept :: q1
+    ; falta el bloque transitions
+}

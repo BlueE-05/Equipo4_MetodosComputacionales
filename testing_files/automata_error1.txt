@@ -1,0 +1,9 @@
+{
+    dfa :: automata_error1
+    states :: 3
+    accept :: q2
+    transitions ::
+        (q0, ["0", "1"], q0),
+        (q0, ["$"], q1),  ; <- "$" no es un símbolo válido en este contexto
+        (q1, ["1"], q2)
+}

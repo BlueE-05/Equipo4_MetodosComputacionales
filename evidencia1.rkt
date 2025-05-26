@@ -1,6 +1,6 @@
 #lang racket
 ;; 1. Leer un archivo de texto que contiene un autómata DFA
-(define archivo "automatas DFA.txt")
+(define archivo "testing_files/automatas DFA.txt")
 
 ; Abrir y leer el archivo línea por línea
 (define in (open-input-file archivo))
@@ -32,4 +32,4 @@
 ;; 5. Crear html
 (require "css.rkt")
 (create-css)
-(create-html "automataDFA.html" tokens resultados-final)
+(create-html "automatasDFA.html" tokens resultados-final)
