@@ -14,7 +14,9 @@
    ".ints { color: #CDD6F4; }\n\n"
    ".keywords { color: #C6A7F2; font-weight: bold; }\n\n"
    ".comments { color: #72788C; font-style: italic; }\n\n" 
-   ".error { text-decoration: underline wavy #F5403B; color: #72788C; font-style: italic; }"))
+   ".error { text-decoration: underline wavy #F5403B; color: #72788C; font-style: italic; }\n\n"".fixed-footer { position: fixed; bottom: 0; left: 0; width: 100%; height: 25vh; background-color: #121217; outline: 1px solid #CDD6F4; box-sizing: border-box; padding: 0.5em 1em; color: #CDD6F4; font-family: \"Courier New\", monospace; display: flex; flex-direction: column; }\n\n"
+   ".footer-title { font-size: 0.9rem; color: #89B4FA; border-bottom: 1px solid #89B4FA; padding-bottom: 0.2em; margin-bottom: 0.5em; letter-spacing: 0.05em; }\n\n"
+   ".terminal-text { color: #A4D99C; font-weight: bold; }"))
 
 ;; Función que escribe el CSS
 (define (create-css)
@@ -31,6 +33,8 @@
     [(equal? label "rg_state") "identifiers"]
     [(equal? label "rg_statesDef") "keywords"]
     [(equal? label "rg_name") "keywords"]
+    [(equal? label "rg_DFAname") "keywords"]
+    [(equal? label "rg_PDAname") "keywords"]
     [(equal? label "rg_alphabet") "keywords"]
     [(equal? label "rg_accept") "keywords"]
     [(equal? label "rg_transitions") "keywords"]
@@ -54,6 +58,9 @@
     [(equal? label "rg_parentesisEnd") "parentesis"]
     
     [(equal? label "rg_action") "braces"]
+    
+    [(equal? label "rg_resultados") "terminal-text"]
+    [(equal? label "rg_resultsError") "error"]
     
     [else ""]))
 
@@ -99,8 +106,32 @@
 
   (apply string-append (loop tokens '() #f)))
 
+(define (token->html-terminal tokens)
+  (define (loop tokens acc in-indent)
+    (cond
+      [(null? tokens) ; fin de lista
+       (if in-indent
+           (reverse (cons "\t</div>\n" acc)) ; cerrar indentación si quedó abierta
+           (reverse acc))]
+
+      [else
+       (define token (car tokens))
+       (define label (first token))
+       (define value (second token))
+
+       (cond
+         [(string=? label "\n")
+          (loop (cdr tokens) (cons "<br>\n" acc) in-indent)]
+
+         [else
+          (define class (token->class label))
+          (define html-line (format "\t<text class='~a'>~a</text>\n" class value))
+          (loop (cdr tokens) (cons html-line acc) in-indent)])]))
+
+  (apply string-append (loop tokens '() #f)))
+
 ; Generar HTML de todos los tokens
-(define (html-output path tokens)
+(define (html-output path tokens resultTokens)
   (string-append
     "<!DOCTYPE html>\n"
     "<html>\n"
@@ -112,14 +143,18 @@
     "<body>\n"
     ;(apply string-append (map token->html tokens))
     (token->html-enhanced tokens)
+    "<div class=\"fixed-footer\">\n"
+    "\t<div class=\"footer-title\">Terminal</div>"
+    (token->html-terminal resultTokens)
+    "</div>\n"
     "</body>\n"
     "</html>\n"))
 
 ; Función principal para crear el archivo HTML
-(define (create-html path tokens)
+(define (create-html path tokens resultTokens)
   (call-with-output-file path
     (lambda (out)
-      (display (html-output path tokens) out))
+      (display (html-output path tokens resultTokens) out))
     #:exists 'replace))
 
 (define test_lst '( ("rg_automatonStart" "{")
@@ -143,4 +178,10 @@
                   )
 )
 
-; (create-html "testLST.html" test_lst)
+(define test_res '( ("rg_resultsError" "Error: se esperaba el inicio de un autómata '{' o una instrucción de ejecución.")
+                    ("\n" "\n")
+                    ("rg_results" "Error: se esperaba el inicio de un autómata '{' o una instrucción de ejecución." )
+                  )
+)
+
+; (create-html "testLST.html" test_lst test_res)
