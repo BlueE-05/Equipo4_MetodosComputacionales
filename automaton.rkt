@@ -41,7 +41,7 @@
   (define start (car states))
   (define accept-syms (map string->symbol accept_state))
   (define transitions-syms
-    (map (λ (t)
+    (map (lambda (t)
            (match t
              [(list from chars to)
               (list (string->symbol from) chars (string->symbol to))]))
@@ -76,22 +76,3 @@
            (define res (traverse start input))
            (format "~a with input ~a -> ~a" name (input->string input) res)])))
   result)
-
-;; Prueba
-(create-automata 'termina-en-ab
-                 'DFA
-                 3
-                 (list "q2")
-                 (list
-                  (list "q0" '("a") "q1")
-                  (list "q0" '("b") "q0")
-                  (list "q1" '("a") "q1")
-                  (list "q1" '("b") "q2")
-                  (list "q2" '("a") "q1")
-                  (list "q2" '("b") "q0")))
-
-;(newline)
-(define res(run-automata 'termina-en-ab '("a" "b")))           ; => success
-;(run-automata 'termina-en-ab '("a" "a" "a" "b"))   ; => success
-;(run-automata 'termina-en-ab '("a" "b" "a"))       ; => failure
-;(run-automata 'termina '("a" "b"))                 ; => Automaton not found
